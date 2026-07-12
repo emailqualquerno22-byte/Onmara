@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: opencode-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    port: 7681
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 7681
+      - key: OPENCODE_SERVER_PASSWORD
+        value: opencode
+      - key: ANTHROPIC_API_KEY
+        value: ${ANTHROPIC_API_KEY}
+    dockerCommand: docker-compose up
+    autoDeploy: true
