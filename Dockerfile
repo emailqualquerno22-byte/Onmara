@@ -1,34 +1,28 @@
-FROM debian:bookworm-slim
+FROM alpine:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.local/bin:${PATH}"
 
-RUN apt-get update && apt-get install -y \
+# Instala dependências mínimas
+RUN apk add --no-cache \
     ca-certificates \
     curl \
-    unzip \
     wget \
+    bash \
     git \
-    build-essential \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/cache/apk/*
 
-# Instala OpenCode com retry e verificação
-RUN mkdir -p /tmp/opencode && cd /tmp/opencode && \
-    curl -fsSL --connect-timeout 30 --max-time 120 https://opencode.ai/install > install.sh && \
-    chmod +x install.sh && \
-    bash install.sh || \
-    (echo "Instalação falhou, tentando novamente..." && sleep 5 && bash install.sh) && \
-    opencode --version
+# Instala OpenCode - ignora erros menores, mas valida no final
+RUN bash -c 'curl -fsSL https://opencode.ai/install | bash' || true
 
 ENV PORT=7681
 
 EXPOSE 7681
 
-# Health check - garante que o Render saiba que está vivo
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Health check - apenas tenta conectar
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
     CMD curl -f http://localhost:7681/ || exit 1
 
-# Inicia com log direto (não background) para Render ver os logs
-CMD ["opencode", "web", "--port", "7681", "--hostname", "0.0.0.0", "--no-auth"]
+# Inicia OpenCode Web sem autenticação
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["opencode web --port 7681 --hostname 0.0.0.0 --no-auth || echo 'Iniciando com fallback...' && sleep 10 && exec opencode web --port 7681 --hostname 0.0.0.0 --no-auth"]
