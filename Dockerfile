@@ -1,33 +1,20 @@
-FROM alpine:latest
+FROM codercom/code-server:latest
 
-ENV PATH="/root/.local/bin:${PATH}"
-
-# Instala dependências
-RUN apk add --no-cache \
-    ca-certificates \
+RUN apt-get update && apt-get install -y \
+    git \
     curl \
     wget \
-    bash \
-    git \
-    tmux \
     python3 \
-    py3-pip \
-    build-base \
-    nodejs \
-    npm \
-    && rm -rf /var/cache/apk/*
+    python3-pip \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instala ttyd
-RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 && \
-    chmod +x /usr/local/bin/ttyd
+ENV PASSWORD=opencode
+ENV BIND_ADDR=0.0.0.0:8080
 
-ENV PORT=7681
+EXPOSE 8080
 
-EXPOSE 7681
-
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:7681/ || exit 1
+    CMD curl -f http://localhost:8080 || exit 1
 
-# Inicia ttyd com opções de container
-CMD ["ttyd", "-W", "-p", "7681", "--interface", "0.0.0.0", "bash"]
+CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "password"]
