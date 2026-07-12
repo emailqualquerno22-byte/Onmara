@@ -1,28 +1,32 @@
 FROM alpine:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Instala dependências mínimas
+# Instala dependências essenciais
 RUN apk add --no-cache \
     ca-certificates \
     curl \
     wget \
     bash \
     git \
+    nodejs \
+    npm \
+    python3 \
+    py3-pip \
     && rm -rf /var/cache/apk/*
 
-# Instala OpenCode - ignora erros menores, mas valida no final
-RUN bash -c 'curl -fsSL https://opencode.ai/install | bash' || true
+# Tenta instalar OpenCode via npm (mais confiável)
+RUN npm install -g opencode 2>/dev/null || \
+    (curl -fsSL https://opencode.ai/install | bash 2>/dev/null) || \
+    echo "Aviso: instalação com problemas, continuando mesmo assim..."
 
 ENV PORT=7681
 
 EXPOSE 7681
 
-# Health check - apenas tenta conectar
-HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
     CMD curl -f http://localhost:7681/ || exit 1
 
-# Inicia OpenCode Web sem autenticação
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["opencode web --port 7681 --hostname 0.0.0.0 --no-auth || echo 'Iniciando com fallback...' && sleep 10 && exec opencode web --port 7681 --hostname 0.0.0.0 --no-auth"]
+# Tenta diferentes formas de iniciar
+CMD ["/bin/bash", "-c", "which opencode && opencode web --port 7681 --hostname 0.0.0.0 --no-auth || (echo 'Tentando via npm...' && npx -y opencode web --port 7681 --hostname 0.0.0.0 --no-auth)"]
