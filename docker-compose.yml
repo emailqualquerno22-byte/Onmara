@@ -1,0 +1,16 @@
+# Rode com:  docker compose up -d --build
+# Acesse em:  http://localhost:7681  (ou a URL que a sua plataforma gerar)
+#
+# Para expor publicamente (celular), publique a porta 7681 na sua plataforma
+# ou use um túnel, ex.:  cloudflared tunnel --url http://localhost:7681
+
+services:
+  opencode:
+    build: .
+    # Mantém o terminal "vivo" mesmo sem conexão
+    stdin_open: true
+    tty: true
+    ports:
+      - "7681:7681"
+    environment:
+      - PORT=7681
