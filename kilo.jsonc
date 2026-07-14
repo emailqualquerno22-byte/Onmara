@@ -1,0 +1,27 @@
+{
+  // Config do Kilo Code para usar GLM-5.2 (Z.ai) via OpenRouter.
+  // 1) Crie uma conta grátis em https://openrouter.ai e gere uma API key.
+  // 2) Substitua a string abaixo pela sua chave (sk-or-v1-...).
+  // 3) Rode o Kilo Code neste projeto/workspace — ele vai usar o GLM-5.2.
+  //
+  // Custo: GLM-5.2 no OpenRouter é ~$0,39 entrada / $1,23 saída por 1M tokens
+  // (barato, mas NÃO gratuito). Para 100% grátis, troque o "model" e "small_model"
+  // por "openai/glm-4.7-flash" e configure o provider "openai" com a baseURL da Z.ai
+  // (https://api.z.ai/api/openai/v1) + sua chave gratuita de https://z.ai.
+  //
+  // Aviso de confiabilidade: o free tier da Z.ai engasga em horário de pico (vimos
+  // incidentes reais de 429). Com OpenRouter+chave paga isso melhora muito, mas GLM-5.2
+  // ainda pode ter latência alta em momentos de pico.
+  "$schema": "https://app.kilo.ai/config.json",
+  "model": "openrouter/z-ai/glm-5.2",
+  "small_model": "openrouter/deepseek/deepseek-v4-flash:free",
+  "provider": {
+    "openrouter": {
+      "options": {
+        "apiKey": "sk-or-v1-COLOQUE_SUA_CHAVE_AQUI",
+        "baseURL": "https://openrouter.ai/api/v1",
+        "timeout": 300000
+      }
+    }
+  }
+}
